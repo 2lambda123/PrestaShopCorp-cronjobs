@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2016 PrestaShop
+* 2007-2018 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2016 PrestaShop SA
+*  @copyright 2007-2018 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -279,21 +279,41 @@ class CronJobsForms
     {
         $id_shop = (int)Context::getContext()->shop->id;
         $id_shop_group = (int)Context::getContext()->shop->id_shop_group;
+        $table_name = _DB_PREFIX_.bqSQL(self::$module->name);
+
+        $select_query = sprintf(
+            "SELECT * FROM `%s` WHERE `id_shop` = '%d' AND `id_shop_group` = '%d'",
+            $table_name,
+            $id_shop,
+            $id_shop_group
+        );
 
         self::$module->addNewModulesTasks();
-        $crons = Db::getInstance()->executeS('SELECT * FROM `'._DB_PREFIX_.bqSQL(self::$module->name).'` WHERE `id_shop` = \''.$id_shop.'\' AND `id_shop_group` = \''.$id_shop_group.'\'');
+        $weekdays = self::getDaysofWeekFormOptions();
+
+        $crons = Db::getInstance()->executeS($select_query);
 
         foreach ($crons as $key => &$cron) {
             if (empty($cron['id_module']) == false) {
                 $module = Module::getInstanceById((int)$cron['id_module']);
 
+                $delete_query = sprintf(
+                    "DELETE FROM `%s` WHERE `id_cronjob` = '%s'",
+                    $table_name,
+                    (int)$cron['id_cronjob']
+                );
+
                 if ($module == false) {
-                    Db::getInstance()->execute('DELETE FROM '._DB_PREFIX_.bqSQL(self::$module->name).' WHERE `id_cronjob` = \''.(int)$cron['id_cronjob'].'\'');
+                    Db::getInstance()->execute($delete_query);
                     unset($crons[$key]);
                     break;
                 }
 
-                $query = 'SELECT `name` FROM `'._DB_PREFIX_.'module` WHERE `id_module` = \''.(int)$cron['id_module'].'\'';
+                $query = sprintf(
+                    "SELECT `name` FROM `%s` WHERE `id_module` = '%s'",
+                    _DB_PREFIX_.'module',
+                    (int)$cron['id_module']
+                );
                 $module_name = Db::getInstance()->getValue($query);
 
                 $cron['description'] = Tools::safeOutput(Module::getModuleName($module_name));
@@ -305,7 +325,7 @@ class CronJobsForms
             $cron['hour'] = ($cron['hour'] == -1) ? self::$module->l('Every hour', 'CronJobsForms') : date('H:i', mktime((int)$cron['hour'], 0, 0, 0, 1));
             $cron['day'] = ($cron['day'] == -1) ? self::$module->l('Every day', 'CronJobsForms') : (int)$cron['day'];
             $cron['month'] = ($cron['month'] == -1) ? self::$module->l('Every month', 'CronJobsForms') : self::$module->l(date('F', mktime(0, 0, 0, (int)$cron['month'], 1)));
-            $cron['day_of_week'] = ($cron['day_of_week'] == -1) ? self::$module->l('Every day of the week', 'CronJobsForms') : self::$module->l(date('l', mktime(0, 0, 0, 0, (int)$cron['day_of_week'])));
+            $cron['day_of_week'] = ($cron['day_of_week'] == -1) ? self::$module->l('Every day of the week', 'CronJobsForms') : $weekdays[(int) $cron['day_of_week']]['name'];
             $cron['updated_at'] = ($cron['updated_at'] == 0) ? self::$module->l('Never', 'CronJobsForms') : date('Y-m-d H:i:s', strtotime($cron['updated_at']));
             $cron['one_shot'] = (bool)$cron['one_shot'];
             $cron['active'] = (bool)$cron['active'];
