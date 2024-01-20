@@ -12,9 +12,9 @@ PrestaShop modules are open-source extensions to the PrestaShop e-commerce solut
 
 Contributors **must** follow the following rules:
 
-* **Make your Pull Request on the "dev" branch**, NOT the "master" branch.
-* Do not update the module's version number.
-* Follow [the coding standards][1].
+- **Make your Pull Request on the "dev" branch**, NOT the "master" branch.
+- Do not update the module's version number.
+- Follow [the coding standards][1].
 
 ### Process in details
 
@@ -22,7 +22,7 @@ Contributors wishing to edit a module's files should follow the following proces
 
 1. Create your GitHub account, if you do not have one already.
 2. Fork the cronjobs project to your GitHub account.
-3. Clone your fork to your local machine in the ```/modules``` directory of your PrestaShop installation.
+3. Clone your fork to your local machine in the `/modules` directory of your PrestaShop installation.
 4. Create a branch in your local clone of the module for your changes.
 5. Change the files in your branch. Be sure to follow [the coding standards][1]!
 6. Push your changed branch to your fork in your GitHub account.
